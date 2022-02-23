@@ -35,7 +35,8 @@ class Venue(db.Model):
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
 
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
+    # TODO: implement any missing fields,
+    # as a database migration using Flask-Migrate
 
 class Artist(db.Model):
     __tablename__ = 'Artist'
@@ -45,12 +46,12 @@ class Artist(db.Model):
     city = db.Column(db.String(120))
     state = db.Column(db.String(120))
     phone = db.Column(db.String(120))
-    genres = db.Column(db.ARRAY(db.String)) # array of values
+    genres = db.Column(db.ARRAY(db.String(120))) # array of values
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
     website_link = db.Column(db.String(120))
-    seeking_venue = db.Boolean
-    seeking_description = db.Text()
+    seeking_venue = db.Column(db.Boolean) # default false
+    seeking_description = db.Column(db.String(500))
 
 
 # db.create_all() we have migrate now
@@ -83,9 +84,6 @@ def index():
   return render_template('pages/home.html')
 
 
-#  Venues
-#  ----------------------------------------------------------------
-
 @app.route('/venues')
 def venues():
   # TODO: replace with real venues data.
@@ -115,13 +113,15 @@ def venues():
     }]
   }]
   '''
-  return render_template('pages/venues.html', areas=data);
+  return render_template('pages/venues.html', areas=venues);
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
-  # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
+  # TODO: implement search on artists with partial string search.
+  # Ensure it is case-insensitive.
   # seach for Hop should return "The Musical Hop".
-  # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
+  # search for "Music" should return "The Musical Hop"
+  # and "Park Square Live Music & Coffee"
   response={
     "count": 1,
     "data": [{
@@ -131,7 +131,6 @@ def search_venues():
     }]
   }
 
-
   return render_template('pages/search_venues.html', results=response,
   search_term=request.form.get('search_term', ''))
 
@@ -139,7 +138,8 @@ def search_venues():
 def show_venue(venue_id):
   # shows the venue page with the given venue_id
   # TODO: replace with real venue data from the venues table, using venue_id
-  data = Venue.query.filter_by(venue_id)
+  data = Venue.query.filter_by(venue_id).first()
+  print("show_venue activated data = " + data)
   '''
   data1={
     "id": 1,
@@ -222,9 +222,6 @@ def show_venue(venue_id):
   # data = list(filter(lambda d: d['id'] == venue_id, [data1, data2, data3]))[0]
   return render_template('pages/show_venue.html', venue=data)
 
-#  Create Venue
-#  ----------------------------------------------------------------
-
 @app.route('/venues/create', methods=['GET'])
 def create_venue_form():
   form = VenueForm()
@@ -245,10 +242,13 @@ def create_venue_submission():
 @app.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
   # TODO: Complete this endpoint for taking a venue_id, and using
-  # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
+  # SQLAlchemy ORM to delete a record.
+  # Handle cases where the session commit could fail.
 
-  # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
-  # clicking that button delete it from the db then redirect the user to the homepage
+  # BONUS CHALLENGE:
+  # Implement a button to delete a Venue on a Venue Page, have it so that
+  # clicking that button delete it from the db
+  # then redirect the user to the homepage
   return None
 
 #  Artists
@@ -273,8 +273,10 @@ def artists():
 
 @app.route('/artists/search', methods=['POST'])
 def search_artists():
-  # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
-  # seach for "A" should return "Guns N Petals", "Matt Quevado", and "The Wild Sax Band".
+  # TODO: implement search on artists with partial string search.
+  # Ensure it is case-insensitive.
+  # seach for "A" should return "Guns N Petals",
+  # "Matt Quevado", and "The Wild Sax Band".
   # search for "band" should return "The Wild Sax Band".
   response={
     "count": 1,
@@ -284,13 +286,14 @@ def search_artists():
       "num_upcoming_shows": 0,
     }]
   }
-  return render_template('pages/search_artists.html', results=response, search_term=request.form.get('search_term', ''))
+  return render_template('pages/search_artists.html',
+  results=response, search_term=request.form.get('search_term', ''))
 
 @app.route('/artists/<int:artist_id>')
 def show_artist(artist_id):
   # shows the artist page with the given artist_id
   # TODO: replace with real artist data from the artist table, using artist_id
-  data = Artist.query.filter_by(id=artist_id)
+  data = Artist.query.filter_by(id=artist_id).first()
   '''
   data1={
     "id": 4,
@@ -436,14 +439,19 @@ def create_artist_submission():
   # TODO: modify data to be the data object returned from db insertion
   name = request.form.get('name','')
   city = request.form.get('city')
+  state = request.form.get('state')
   phone = request.form.get('phone')
   genres = request.form.get('genres')
   facebook_link = request.form.get('facebook_link')
   image_link = request.form.get('image_link')
   website_link = request.form.get('website_link')
-  seeking_venue = request.form.get('seeking_venue')
+  seeking_venue_str = request.form.get('seeking_venue')
+  seeking_venue = False
+  if seeking_venue_str == 'y':
+      seeking_venue = True
+
   seeking_description = request.form.get('seeking_description')
-  artist = Artist(name=name,city=city,phone=phone,genres=genres,
+  artist = Artist(name=name,city=city,state=state,phone=phone,genres=genres,
   facebook_link=facebook_link,website_link=website_link,seeking_venue=seeking_venue,
   seeking_description=seeking_description)
   db.session.add(artist)
